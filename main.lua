@@ -145,7 +145,17 @@ local levelGroup = display.newGroup()
 
 ------- Spawning quadrados ----------------------------
 
+local function onTouch(self, event)
+	
+    display.remove(self)
+	return true
+end
 
+		-- local andando = function(event)
+		-- vilao[i].y = vilao[i].y +0.4
+		-- return true
+		-- end		
+		
 local spawnQuad = function()
 
 if gameIsActive then
@@ -172,28 +182,30 @@ if gameIsActive then
 		}
 ------- Sprite quadradovilao pulando fim--------------------
 
+
+
     	local Fall = math.random(2) == 1 and 220 or 100
-    	vilao[i] = display.newSprite( sheet_quad, quad_pulando )
+		vilao[i] = display.newSprite( sheet_quad, quad_pulando )
     	vilao[i].x = Fall
     	vilao[i].y = -30   	   	
+		
     	vilao[i].value = i 
-		--physics.addBody(vilao[i], "dynamic", {bounce = 0}) 
+		physics.addBody(vilao[i], "dynamic", {bounce = 0}) 
 		vilao[i]:setSequence("pulando")
 		vilao[i]:play()	
+		vilao[i].touch = onTouch
+		vilao[i]:addEventListener("touch")
+		
     	i = i + 1		
+		
 	
-	
-		function vilao[i]:andando( event )
-		vilao[i].y = vilao[i].y + 0.4
-			
-		end
-	Runtime:addEventListener( "enterFrame", andando )
 end
+	
     end
-    vilaoTimer = timer.performWithDelay( 1800, spawnQuad, -1 ) -- this is a time and 1000 is 1 second and 1000 miliseconds.. it will spawn one circle every one second.. you can change this at your own liking..
+    vilaoTimer = timer.performWithDelay( 1500, spawnQuad, -1 ) -- this is a time and 1000 is 1 second and 1000 miliseconds.. it will spawn one circle every one second.. you can change this at your own liking..
 
 ------- Spawning quadrados fim -------------------------
 
-
+		
 
 
