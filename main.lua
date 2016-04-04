@@ -85,15 +85,17 @@ physics.start()
 ------- Saber posicionamento da tela x e y ---------
 
 		
-	local function onTouch(event)
-		 print("POS.X = " .. event.x, "POS.Y = ".. event.y);
-	end
+	-- local function onTouch(event)
+		 -- print("POS.X = " .. event.x, "POS.Y = ".. event.y);
+	-- end
 
-	Runtime:addEventListener("touch",onTouch);
+	-- Runtime:addEventListener("touch",onTouch);
 
 ------- Saber posicionamento da tela x e y fim ---------
 
 
+	local arma = {'quadrado', 'triangulo'}
+	
 ------- Sprite bolaheroi pulando --------------------
 		local mrbola = {
 		   width = 82,
@@ -118,13 +120,32 @@ physics.start()
 		local heroi = display.newSprite( sheet_heroi, pulando_heroi )
 		heroi.x = 160
 		heroi.y = 370
+		arma.quadrado = 1
+		arma.triangulo = 2
+		heroi.arma = 1
 		--physics.addBody(heroi, "kinematic", {bounce = 0})
 		heroi:setSequence("pulando")
 		heroi:play()
 		heroi.collision = onCollision
 		heroi:addEventListener("collision", heroi)
 ------- Sprite bolaheroi pulando fim--------------------		
+		
+		function heroi:tap(event)
+		if (event.numTaps == 2) then	
+			if (heroi.arma == 1) then
+			heroi.arma = 2
+			print( "Arma mudou para triangulo" )
+			return true;
+			end
+			elseif (heroi.arma == 2) then
+			heroi.arma = 1
+			print( "Arma mudou para quadrado" )
+			return true;
+			end
+		end
 
+		heroi:addEventListener( "tap" )
+		
 local levelGroup = display.newGroup()
 
 		local function onCollision(self, event)
@@ -145,10 +166,11 @@ local levelGroup = display.newGroup()
 
 ------- Spawning quadrados ----------------------------
 
-local function onTouch(self, event)
-	
+function onTouch(self, event)
+	if (heroi.arma == self.id) then
     display.remove(self)
-	return true
+	return true;
+	end
 end
 
 		-- local andando = function(event)
@@ -188,8 +210,8 @@ if gameIsActive then
 		vilao[i] = display.newSprite( sheet_quad, quad_pulando )
     	vilao[i].x = Fall
     	vilao[i].y = -30   	   	
-		
     	vilao[i].value = i 
+		vilao[i].id = 1
 		physics.addBody(vilao[i], "dynamic", {bounce = 0}) 
 		vilao[i]:setSequence("pulando")
 		vilao[i]:play()	
