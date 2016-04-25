@@ -53,9 +53,10 @@
 
 	local gameIsActive = true
 	local vilao = {}
+	local vilao2 = {}
     local i = 1
     local vilaoTimer, score, distancia, verifica, verificaDistancia, verificaPowerUp, monstrosEliminados, 
-	contadorPowerUP, dificuldade, powerUp
+	contadorPowerUP, dificuldade, powerUp, contadorEstrela, doisMonstros
 	local powerUpAtivado = false
 	local metro = false
 	local arma = {'quadrado', 'triangulo', 'especial'}
@@ -70,7 +71,9 @@
 	dificuldade = 800
 	verifica = 10
 	monstrosEliminados = 0
+	doisMonstros = false
 	contadorPowerUP = 0
+	contadorEstrela = 0
 	powerUp = false
 	
 	local function updateTexto()
@@ -158,6 +161,24 @@
 			name = "rubik_girando",
 			start = 1,
 			count = 11,
+			time = 800,
+			loopCount = 0,
+			loopDirection = "bounce"
+			}
+		}
+		
+		local estrela = {
+			width = 16,
+			height = 15,
+			numFrames = 4
+		}
+		local sheet_estrela = graphics.newImageSheet ("images/star.png", estrela)
+		
+		local animacao_estrela = {
+		{
+			name = "estrela_brilhando",
+			start = 1,
+			count = 4,
 			time = 800,
 			loopCount = 0,
 			loopDirection = "bounce"
@@ -444,6 +465,12 @@
 			
 		end
 	end	
+	
+	
+	local function doisMonstrosAtivar (event)
+	doisMonstros = false
+	dificuldade = dificuldade + 100
+	end
 		
 	local function powerUpAtivo(event)
 		if (heroi.sentido == 1) then
@@ -507,7 +534,15 @@
 	end
 	
 	
-
+	function OnTouch3 (self, event)
+	audio.play(coletandoEstrela)
+	if (self.id == 4) then
+	score=score+5
+	updateTexto()
+	contadorEstrela = contadorEstrela +1
+	display.remove(self)
+	end
+	end
 	
 			
 	function criarRubik(self)	
@@ -525,6 +560,8 @@
 			rubikPowerUP:toFront()
 			
 	end
+	
+	
 
 -- function rubikPowerUP:touch (event)
 	-- if (self.x == 100) then 
@@ -745,17 +782,85 @@
 	------- Sprite quadradovilao pulando fim--------------------
 			if (dificuldade >= 550) then
 			dificuldade = dificuldade - 5
+			if (dificuldade == 600) then
+			doisMonstros = true
+			end
 			end
 			local prob = contadorPowerUP + 10
 			local prob2 = (contadorPowerUP+1) * 10
 			
-			
 			local Fall = math.random(2) == 1 and 220 or 100
 			local monstro = math.random(1, 2)
+			local cair = math.random(3) == 1 and 280 or 50 or 160
+	
+	function criarEstrela()	
+		
+		local estrelaCoin = display.newSprite(sheet_estrela, animacao_estrela)
+			estrelaCoin.x = cair
+			estrelaCoin.y = -30
+ 			estrelaCoin.id = 4	
+			estrelaCoin:setSequence("estrela_brilhando")
+			estrelaCoin:play()
+			estrelaCoin.touch = OnTouch3
+			physics.addBody(estrelaCoin, "dynamic", {bounce = 0}) 
+			estrelaCoin:addEventListener("touch", estrelaCoin)
+			estrelaCoin:toFront()
+			
+	end
 			
 			
-			
+			local combinacao = math.random(1,4)
+			local probabilidadeEstrela = math.random(1,3)
 			local probabilidadePowerUp = math.random(prob)
+			if (doisMonstros == true) then
+				if (combinacao == 1)then
+				vilao2[i] = display.newSprite(sheet_quad, quad_pulando)
+				vilao2[i].id = 1
+				vilao[i] = display.newSprite(sheet_quad2, quad_pulando)
+				vilao[i].id = 2
+				elseif (combinacao == 2) then
+				vilao2[i] = display.newSprite(sheet_quad2, quad_pulando)
+				vilao2[i].id = 2
+				vilao[i] = display.newSprite(sheet_quad, quad_pulando)
+				vilao[i].id = 1
+				elseif (combinacao == 3) then
+				vilao2[i] = display.newSprite(sheet_quad, quad_pulando)
+				vilao2[i].id = 1
+				vilao[i] = display.newSprite(sheet_quad, quad_pulando)
+				vilao[i].id = 1
+				elseif (combinacao == 4) then
+				vilao2[i] = display.newSprite(sheet_quad2, quad_pulando)
+				vilao2[i].id = 2
+				vilao[i] = display.newSprite(sheet_quad2, quad_pulando)
+				vilao[i].id = 2
+				end
+				if (probabilidadePowerUp == prob and monstrosEliminados >= prob2 and heroi.powerUpAtivado == false 
+				and powerUp == false) then
+				rubikCube()
+				end
+				vilao2[i].x = 100
+				vilao2[i].y = -30
+				vilao2[i].value = i
+				vilao2[i]:setSequence("pulando")
+				vilao2[i]:play()	
+				vilao2[i].touch = onTouch
+				vilao2[i]:addEventListener("touch")
+				vilao2[i].enterFrame = andando
+				Runtime:addEventListener("enterFrame", vilao2[i])
+				
+				vilao[i].x = 220
+				vilao[i].y = -30   	   	
+				vilao[i].value = i 	
+				vilao[i]:setSequence("pulando")
+				vilao[i]:play()	
+				vilao[i].touch = onTouch
+				vilao[i]:addEventListener("touch")
+				vilao[i].enterFrame = andando
+				
+				Runtime:addEventListener("enterFrame", vilao[i])
+				timer.performWithDelay(1500, doisMonstrosAtivar)
+				
+			elseif(doisMonstros == false)then
 			if (monstro == 1) then
 				vilao[i] = display.newSprite(sheet_quad, quad_pulando )
 				vilao[i].id = 1
@@ -778,13 +883,16 @@
 				vilao[i].enterFrame = andando
 				
 				Runtime:addEventListener("enterFrame", vilao[i])
-		
+			end
 			verificarMetro()
 			print (dificuldade)
 			i = i + 1
 			distancia = distancia + 1
 			updateTexto()
 			if (metro == true) then
+			if (probabilidadeEstrela == 3)then
+			criarEstrela()
+			end
 			score = score+1
 			updateTexto()
 			metro = false
