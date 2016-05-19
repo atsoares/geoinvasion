@@ -1,4 +1,3 @@
-------- Declaração de variaveis --------------------------
 
 	local i = 1
 	local score = 0
@@ -6,13 +5,22 @@
 	local vilao = {}
 	local vilao2 = {}
 	local heroi
+	local displayInfo
+	local tumuloSprite
+	local explosaoSprite
 	local iconeRubik
 	local iconeCube
 	local iconeTriangle
 	local grupoMonstros1
-	local grupoMonstros2	
+	local grupoMonstros2
+	local grupoItens
 	local textDistancia
+	local textIniciar
 	local textScore
+	local displayGameOver
+	local gameOverItens
+	local gameOverMonstros
+	local gameOverTotal
 	local distancia = 0
 	local distanciaAux = 10
 	local metro = false
@@ -21,9 +29,11 @@
 	local gameIsActive = true
 	local carregarImagens = {}
 	local verificaDistancia
+	local contagemRegressiva = 5
 	local monstrosEliminados = 0
 	local contadorPowerUP = 0
 	local dificuldade = 800
+	local ativarTempoPowerUp
 	local contadorEstrela = 0
 	local doisMonstros = false
 	local jogoAcabou = false
@@ -33,12 +43,16 @@
 
 	local somAtirando = audio.loadSound("audio/atirando.wav")
 	local somAtirandoPowerUp = audio.loadSound("audio/sfx_wpn_cannon1.wav")
-	local coletandoPowerUp = audio.loadSound("audio/sfx_sound_poweron.wav")
+	local coletandoPowerUp = audio.loadSound("audio/sfx_sounds_powerup9.wav")
+	local carregandoDisplay = audio.loadSound("audio/sfx_sound_poweron.wav")
+	local fechandoDisplay = audio.loadSound("audio/sfx_sound_shutdown1.wav")
 	local somTrocandoArma = audio.loadSound("audio/sfx_sounds_button14.wav")
 	local coletandoEstrela = audio.loadSound("audio/estrela.wav")
 	local bgMusic = audio.loadStream("audio/Out of placemidi MSX.wav")
+	local GameOverMusic = audio.loadStream("audio/menu.wav")
 	local somMorrendo = audio.loadSound("audio/sfx_exp_cluster3.wav.wav")
-	local somAcabandoPowerUp = audio.loadSound("audio/sfx_sound_shutdown1.wav")
+	local somAcabandoPowerUp = audio.loadSound("audio/sfx_sound_shutdown2.wav")
+	
 	
 	
 	local function updateTexto()
@@ -378,8 +392,40 @@
 	   numFrames = 16
 	}
 	
+	local ripAstronauta = {
+	   width = 80,
+	   height = 70,
+	   numFrames = 10
+	}
+	
+	local explosao = {
+	   width = 80,
+	   height = 70,
+	   numFrames = 5
+	}
+	
+	local explosaoAnimacao = {
+		{
+			name = "explodindo",
+			start = 1,
+			count = 5,
+			time = 1000,
+			loopCount = 1,
+			loopDirection = "forward"
+		}
+	}
+	
+	local tumuloMexendo = {
+		{
+			name = "morrendo",
+			start = 1,
+			count = 10,
+			time = 1000,
+			loopCount = 0,
+			loopDirection = "forward"
+		}
+	}
 	local monstro_pulando = {
-			-- sequencia dos frames
 		{
 			name = "andando",
 			start = 1,
@@ -391,10 +437,12 @@
 	}
 	
 	local sheet_estrela = graphics.newImageSheet ("images/star.png", estrela)
+	local sheet_explosao = graphics.newImageSheet ("images/explosao.png", explosao)
 	local sheet_rubik = graphics.newImageSheet ("images/rubikscube.png", rubik)
 	local sheet_cubo = graphics.newImageSheet ("images/CubePower.png", iconeDisplay)
 	local sheet_triangulo = graphics.newImageSheet ("images/TrianguloMagico.png", iconeDisplay)
-------- Sprite monstros andando --------------------	
+	local sheet_tumulo = graphics.newImageSheet ("images/tumulo.png", ripAstronauta)
+	------- Sprite monstros andando --------------------	
 	
 	local sheet_quad = graphics.newImageSheet("images/cubemonstergreen.png", quadradoVilao)
 	local sheet_quad2 = graphics.newImageSheet( "images/cube_monster_red.png", quadradoVilao)
@@ -403,47 +451,64 @@
 	local sheet_tri2 = graphics.newImageSheet( "images/triagle_cube_monster_red.png", trianguloVilao)
 	local sheet_tri3 = graphics.newImageSheet( "images/triagle_cube_monster_blue.png", trianguloVilao)
 		
+	function explodir()
+		explosaoSprite = display.newSprite( sheet_explosao, explosaoAnimacao )
+		explosaoSprite.x = 160
+		explosaoSprite.y = 436
+		explosaoSprite:setSequence("explodindo")
+		explosaoSprite:play()
+		transition.to(explosaoSprite, {time = 1200, alpha = 0} )
 	
+	end	
 	
 	function carregarDados()
 		
-		local displayInfo = display.newImageRect("images/DisplayInfo.png", 320, 80)
+		displayInfo = display.newImageRect("images/DisplayInfo.png", 320, 80)
 		displayInfo.x = display.contentCenterX
-		displayInfo.y = display.contentCenterY - 200
+		displayInfo.y = -60
+		transition.to(displayInfo, {time = 800, y =  display.contentCenterY - 200} )
+		audio.play(carregandoDisplay)
+		displayInfo:toFront()
 		
 		local textoDistancia = 
 			{
 			--parent = textGroup,
 			text = distancia,     
-			x = display.contentWidth*0.49,
-			y = 1.3,
+			x = display.contentWidth*0.50,
+			y = -60,
 			width = 128,     --required for multi-line and alignment
 			font = "Retro Computer_DEMO.ttf",   
-			fontSize = 30,
+			fontSize = 15,
 			align = "right"  --new alignment parameter
 		}
 		local textoPontos = 
 			{
 			--parent = textGroup,
 			text = score,     
-			x = display.contentWidth*0.23,
-			y = 1.3,
+			x = display.contentWidth*0.21,
+			y = -60,
 			width = 128,     --required for multi-line and alignment
 			font = "Retro Computer_DEMO.ttf",   
-			fontSize = 30,
+			fontSize = 15,
+			
 			align = "left"  --new alignment parameter
 		}
 		textDistancia = display.newText(textoDistancia)
-		textDistancia:setTextColor(0,0,0)
 		textScore = display.newText(textoPontos)
+		textDistancia:setTextColor(0,0,0)
 		textScore:setTextColor(0,0,0)
+		textDistancia.alpha = 0
+		textScore.alpha = 0
+		transition.to(textDistancia, {time = 800, alpha = 1, y = 19} )
+		transition.to(textScore, {time = 800, alpha = 1, y = 19} )
 		
 		iconeCube = display.newSprite (sheet_cubo, animacao_iconeDisplay)
 		iconeCube.x = display.contentCenterX + 0.5
-		iconeCube.y = 37
+		iconeCube.y = -60
 		iconeCube:setSequence("iconeDisplay_girando")
 		iconeCube:play()
-		iconeCube.alpha = 1
+		iconeCube.alpha = 0
+		transition.to(iconeCube, {time = 800, alpha = 1, y = 37} )
 		
 		iconeTriangle = display.newSprite (sheet_triangulo, animacao_iconeDisplay)
 		iconeTriangle.x = display.contentCenterX + 0.5
@@ -478,10 +543,23 @@
 			end
 		end
 	end
+	function pararDisplay()
+		iconeTriangle:pause()
+		iconeRubik:pause()
+		iconeCube:pause()
+		iconeTriangle.alpha = 0
+		iconeRubik.alpha = 0
+		iconeCube.alpha = 0
+		textDistancia.alpha = 0
+		textScore.alpha = 0
+		transition.to(displayInfo, {time = 400, alpha=0, y =-30} )
+		audio.play(fechandoDisplay)
+	end
 	
 	function criarGrupos()
 		grupoMonstros1 = display.newGroup()
 		grupoMonstros2 = display.newGroup()
+		grupoItens = display.newGroup()
 	end
 	
 	function carregarImagens()
@@ -490,8 +568,13 @@
 	
 	function criarHeroi()
 		heroi = display.newSprite( sheet_heroi, sequencia_heroi )
+		tumuloSprite = display.newSprite( sheet_tumulo, tumuloMexendo )
 		heroi.x = 160
 		heroi.y = 436
+		tumuloSprite.x = heroi.x
+		tumuloSprite.y = heroi.y
+		tumuloSprite.alpha = 0
+		heroi.alpha = 1
 		arma.quadrado = 1
 		arma.triangulo = 2
 		arma.especial = 3
@@ -579,11 +662,11 @@
 	end
 	
 	function trocarParaArmaEspecial(self, event) ------------- função para ativar modo Especial ao clicar no cubo magico
-		if (gameIsActive == true and heroi.powerUpAtivado == false and powerUp == false) then
+		if (gameIsActive == true and heroi.powerUpAtivado == false) then
 			audio.play(coletandoPowerUp)
 			timer.performWithDelay(1, function() self:removeSelf() end )
 			heroi.powerUpAtivado = true
-			timer.performWithDelay(5000, powerUpAtivo)
+			ativarTempoPowerUp = timer.performWithDelay(5000, powerUpAtivo)
 			if (self.x == 100 and heroi.arma == 1) then 
 				heroi:setSequence("verde_trocandoParaArmaEspecial_esq")
 				heroi:play()
@@ -628,7 +711,7 @@
 	local function ItemExtraCaindo(self,event) ----- função que move itens extras como Estrela e Cubo Mágico
 		if (self.y ~= nil) then
 			if (gameIsActive == true) then
-				self.y = self.y + 2
+				self.y = self.y + 3
 				if (self.y >= 481) then
 					self.alpha = 0
 					self:removeSelf()
@@ -648,6 +731,21 @@
 			end
 		end
 	end
+	function criarEstrela()	
+		local estrelaCoin = display.newSprite(sheet_estrela, animacao_estrela)
+		estrelaCoin.x = math.random(3) == 1 and 295 or 25 or 160
+		estrelaCoin.y = -30
+		estrelaCoin.id = 4	
+		estrelaCoin:setSequence("estrela_brilhando")
+		estrelaCoin:play()
+		estrelaCoin.touch = coletarEstrelas
+		estrelaCoin.enterFrame = ItemExtraCaindo
+		Runtime:addEventListener("enterFrame", estrelaCoin)
+		estrelaCoin:addEventListener("touch", estrelaCoin)
+		grupoItens:insert(estrelaCoin)
+	
+	end
+	
 	
 	function criarRubik(self)	----- função para criar o cubo magico
 		if (powerUp == true and heroi.powerUpAtivado == false) then
@@ -667,22 +765,13 @@
 		end
 	end
 
-	function criarEstrela()	
-		local estrelaCoin = display.newSprite(sheet_estrela, animacao_estrela)
-		estrelaCoin.x = math.random(3) == 1 and 280 or 50 or 160
-		estrelaCoin.y = -30
-		estrelaCoin.id = 4	
-		estrelaCoin:setSequence("estrela_brilhando")
-		estrelaCoin:play()
-		estrelaCoin.touch = coletarEstrelas
-		estrelaCoin.enterFrame = ItemExtraCaindo
-		Runtime:addEventListener("enterFrame", estrelaCoin)
-		estrelaCoin:addEventListener("touch", estrelaCoin)
-		estrelaCoin:toFront()
-	end
+
 	
 	function HeroiMorrendo()
-		
+		transition.to( heroi, {alpha = 0, time=100})
+		transition.to( tumuloSprite, {alpha = 1, time=100})
+		tumuloSprite:setSequence("morrendo")
+		tumuloSprite:play()
 	end
 	
 	function HeroiAtirar (event) --- função que chama os sprites na hora certa
@@ -830,10 +919,10 @@
 	------ Sprite quadradovilao pulando --------------------
 
 	------- Sprite quadradovilao pulando fim--------------------
-		--audio.play(bgMusic)
-		
-			local prob = contadorPowerUP + 1
-			local prob2 = (contadorPowerUP+1) * 1
+		audio.play(bgMusic, {loops = -1, channel = 1, fadein=1000})
+			
+			local prob = contadorPowerUP + 10
+			local prob2 = (contadorPowerUP+10) * 1
 			
 			local combinacao = math.random(1,36)
 			local probabilidadePowerUp = math.random(prob)
@@ -1128,30 +1217,82 @@
 	 		
     end
 	
-	function vilao2Timer()
-	vilaoTimer = timer.performWithDelay( dificuldade,function () spawnQuad(); vilao2Timer() end, 1 ) -- this is a time and 1000 is 1 second and 1000 miliseconds.. it will spawn one circle every one second.. you can change this at your own liking..
-
+	function IniciarJogo()
+		timer.performWithDelay( 1000, ativarEstrela(), 1 )
+		vilaoTimer = timer.performWithDelay( dificuldade,function () spawnQuad(); IniciarJogo() end, 1 ) 
+		
 	end
   
   
-  
-  function telaDeGameOver()
-	  local square = display.newRect( 0, 0, 300, 300 )
-	  square.x = _W/2
-	  square.y = _H
-	  square.alpha = 0.1
-	  transition.to( square, {alpha = 1, time=400, x=(_W/2), y=(_H/2)} )
-  end
+	function telaDeGameOver()
+	  displayGameOver = display.newImageRect("images/gameOver.png", 300, 316)
+	  displayGameOver.x = _W/2
+	  displayGameOver.y = _H
+	  displayGameOver.alpha = 0.1
+	  transition.to( displayGameOver, {alpha = 1, time=400, x=(_W/2), y=(_H/2)} )
+	  
+		local textoItens = 
+			{
+			--parent = textGroup,
+			text = contadorEstrela.."x5",     
+			x = _W/2 + 10,
+			y = _H,
+			width = 110,     --required for multi-line and alignment
+			font = "Retro Computer_DEMO.ttf",   
+			fontSize = 20,
+			
+			align = "right"  --new alignment parameter
+		}
+		local textoMonstros = 
+			{
+			--parent = textGroup,
+			text = monstrosEliminados.."x10",     
+			x = _W/2 + 15,
+			y = _H,
+			width = 110,     --required for multi-line and alignment
+			font = "Retro Computer_DEMO.ttf",   
+			fontSize = 20,
+			
+			align = "right"  --new alignment parameter
+		}
+		local textoPontos = 
+			{
+			--parent = textGroup,
+			text = score,     
+			x = _W/2,
+			y = _H,
+			width = 110,     --required for multi-line and alignment
+			font = "Retro Computer_DEMO.ttf",   
+			fontSize = 20,
+			
+			align = "right"  --new alignment parameter
+		}
+		gameOverItens = display.newText(textoItens)
+		gameOverMonstros = display.newText(textoMonstros)
+		gameOverTotal = display.newText(textoPontos)
+		gameOverItens:setTextColor(255,255,255)
+		gameOverMonstros:setTextColor(255,255,255)
+		gameOverTotal:setTextColor(255,255,255)
+		gameOverItens.alpha = 0
+		gameOverMonstros.alpha = 0
+		gameOverTotal.alpha = 0
+		transition.to(gameOverItens, {time = 400, alpha = 1, y = (_H/2) - 38} )
+		transition.to(gameOverMonstros, {time = 400, alpha = 1, y = (_H/2) + 25 } )
+		transition.to(gameOverTotal, {time = 400, alpha = 1,y = (_H/2) + 70} )
+	  
+	  
+	end
 	
 	function ativarEstrela()
-	
-		local probabilidadeEstrela = math.random(1,3)
-		if (probabilidadeEstrela == 3)then
-			timer.performWithDelay( dificuldade, criarEstrela(), 1)
-	
+		local probabilidadeEstrela = math.random(1,10)
+		if (distancia/distanciaAux == 1) then
+			if (probabilidadeEstrela == 2)then
+				criarEstrela()
 			end
 		end
+	end
 	
+		audio.setVolume( 0.50 , { channel=1 })
 	
 	function GameOver() 
 		Runtime:removeEventListener( "enterFrame", move )
@@ -1161,6 +1302,10 @@
 		Runtime:removeEventListener("enterFrame", vilao[i])
 		timer.performWithDelay(1000, timer.pause(vilaoTimer))
 		desativarBg()
+		explodir()
+		pararDisplay()
+		HeroiMorrendo()
+		audio.setVolume( 0.20, { channel=1 })
 		telaDeGameOver()
 		grupoMonstros1.alpha = 0
 		grupoMonstros1:removeSelf()
@@ -1168,16 +1313,24 @@
 			grupoMonstros2.alpha = 0
 			grupoMonstros2:removeSelf()
 		end
-		heroi:pause()
+		if (grupoItens ~= nil) then
+			grupoItens.alpha = 0
+			grupoItens:removeSelf()
+		end
+		if (ativarTempoPowerUp ~= nil) then
+			timer.pause(ativarTempoPowerUp)
+		end
+
+		
+		
 		--heroi:setSequence("morrendo")
 		--heroi:play()
 		
 	end
 	
-	vilao2Timer()
 	
-	ativarEstrela()
 	
+	IniciarJogo()
 	carregarDados()
 	
 	
