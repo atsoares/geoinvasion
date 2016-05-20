@@ -29,8 +29,8 @@ local carregarImgsGameOver = {}
 -- Sprites
 --------------------------------------------------------------------------------
 local ripAstronauta = {
-	width = 80,
-	height = 70,
+	width = 130,
+	height = 114,
 	numFrames = 10
 }
 local tumuloMexendo = {

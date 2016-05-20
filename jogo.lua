@@ -28,6 +28,7 @@ local scene = composer.newScene()
 	local textScore
 	local ativandoItensColetaveis
 	local probabilidadeItensColetaveis
+	local displayAtivo = false
 	local metro = false
 	local paused = false
 	local powerUp = false
@@ -559,6 +560,12 @@ end
 end
 --------------------------------------------------------------------------------
 
+
+	function displayAtivado()
+		displayAtivo = true
+	end
+
+
 --------------------------------------------------------------------------------
 -- Função para ativar display com pontuação
 --------------------------------------------------------------------------------
@@ -578,7 +585,7 @@ end
 			iconeTriangle:play()
 			iconeRubik:setSequence("rubik_girando")
 			iconeRubik:play()
-			transition.to(iconeCube, {time = 800, alpha = 1, y = 37} )
+			transition.to(iconeCube, {time = 800, alpha = 1, y = 37, onComplete = displayAtivado} )
 		end	
 	end
 --------------------------------------------------------------------------------
@@ -740,7 +747,7 @@ end
 -- Função para  trocar a arma do astronauta
 --------------------------------------------------------------------------------			
 	function trocarArma(event) 
-		if (event.numTaps == 1 and heroi.arma ~= 3) then
+		if (event.numTaps == 1 and heroi.arma ~= 3 and displayAtivo == true) then
 			audio.play(somTrocandoArma)		
 			if (heroi.arma == 1 and heroi.sentido == 2) then
 				heroi:setSequence("trocandoParaArmaLaranja_dir")
