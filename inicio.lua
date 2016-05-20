@@ -42,7 +42,7 @@ function scene:create(event)
 
   local somInicio = audio.loadStream( "audio/menu.mp3" )
   audio.play(somInicio, {loops = -1, channel = 1, fadein=1000})
-  audio.setVolume( 0.50 , { channel=1 })
+  audio.setVolume( 0.85 , { channel=1 })
 end
 --------------------------------------------------------------------------------
 

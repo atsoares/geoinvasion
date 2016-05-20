@@ -2,24 +2,24 @@
 -- Inicializar composer
 --------------------------------------------------------------------------------
 local composer = require("composer")
-local scene = composer.newScene()
-
+local scene = composer.newScene( )
 --------------------------------------------------------------------------------
+
 
 --------------------------------------------------------------------------------
 -- Declarar/Inicializar variáveis/funções
 --------------------------------------------------------------------------------
-local botaoJogar
-local botaoCredito
 local botaoVoltarMenu
-local carregandoEstrelas1
-local carregandoEstrelas2
-local comoJogar
-local creditos = {}
-local comecarJogo = {}
+local creditosTxt
+local logomarca
 local carregarImgsMenu = {}
-local carregarEstrelas = {}
-local carregarEstrelas2 = {}
+local _W = display.contentWidth;
+local _H = display.contentHeight;
+local scrollSpeed = 2;
+local ativarBg = {}
+local desativarBg = {}
+local carregarImagens = {}
+	
 --------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
@@ -28,13 +28,11 @@ local carregarEstrelas2 = {}
 --------------------------------------------------------------------------------
 function scene:create(event)
   local sceneGroup = self.view
+  carregarImagens()
   carregarImgsMenu()
   
-
-  somMenu = audio.loadStream( "audio/8bit.mp3" )
-  audio.setVolume( 0.25, { channel=1 })
   audio.play(somMenu, {loops = -1, channel = 1, fadein=1000})
-  
+  audio.setVolume( 0.25, { channel=1 })
 end
 --------------------------------------------------------------------------------
 
@@ -45,18 +43,13 @@ function scene:show(event)
   local sceneGroup = self.view
   local phase = event.phase
 
-  composer.removeScene("inicio")
-  composer.removeScene("jogo")
-  composer.removeScene("creditos")
+  composer.removeScene("menu")
 
   if (phase == "will") then
     -- Chama quando a cena está fora da tela
   elseif (phase == "did") then
-    botaoJogar:addEventListener("touch", comecarJogo)
-    botaoCredito:addEventListener("touch", creditos)
-    botaoVoltarMenu:addEventListener("touch", inicio)
-	carregandoEstrelas1 = timer.performWithDelay(1000, carregarEstrelas, 0)
-    carregandoEstrelas2 = timer.performWithDelay(1500, carregarEstrelas2, 0)
+    botaoVoltarMenu:addEventListener("touch", carregarMenu)
+	ativarBg()
   end
 end
 --------------------------------------------------------------------------------
@@ -83,20 +76,14 @@ end
 --------------------------------------------------------------------------------
 function scene:destroy(event)
   local sceneGroup = self.view
-	
-  display.remove(background)
-  if (carregandoEstrelas1) then
-    timer.cancel(carregandoEstrelas1)
-    carregandoEstrelas1 = nil
-  end
-  if (carregandoEstrelas2) then
-    timer.cancel(carregandoEstrelas2)
-    carregandoEstrelas2 = nil
-  end
-  if (carregandoToqueAqui) then
-    timer.cancel(carregandoToqueAqui)
-    carregandoToqueAqui = nil
-  end
+  
+  desativarBg()
+  display.remove(logomarca)
+  display.remove(creditosTxt)
+  display.remove(background1)
+  display.remove(background2)
+  display.remove(background3)
+  
   -- Chamado antes da remoção de vista da cena ("sceneGroup")
   -- Código para "limpar" a cena
   -- ex: remover obejtos display, save state, cancelar transições e etc
@@ -104,31 +91,36 @@ end
 --------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
+-- Função para carregar as imagens: background
+--------------------------------------------------------------------------------
+	function carregarImagens()
+		background1 = display.newImageRect("images/backgroundCredito1.png", 320, 480)
+		background1:setReferencePoint(display.CenterLeftReferencePoint)
+		background1.x = 0; background1.y = _H/2;
+		scene.view:insert(background1)	
+		
+		background2 = display.newImageRect("images/backgroundCredito1.png", 320, 480)
+		background2:setReferencePoint(display.CenterLeftReferencePoint)
+		background2.x = 0; background2.y = background1.y+480;
+		scene.view:insert(background2)
+		
+		background3 = display.newImageRect("images/backgroundCredito1.png", 320, 480)
+		background3:setReferencePoint(display.CenterLeftReferencePoint)
+		background3.x = 0; background3.y = background2.y+480;
+		scene.view:insert(background3)
+	end
+--------------------------------------------------------------------------------	
+
+
+--------------------------------------------------------------------------------
 -- Carregar imagens contidas no menu
 --------------------------------------------------------------------------------
 function carregarImgsMenu( )
-  background = display.newImageRect("images/SkyFullOfStars0.png", display.contentWidth, display.contentHeight)
-  background.x = display.contentCenterX
-  background.y = display.contentCenterY
-  scene.view:insert(background)
-
-  ceuEstrelado = display.newImageRect("images/SkyFullOfStars1.png", display.contentWidth, display.contentHeight)
-  ceuEstrelado.x = display.contentCenterX
-  ceuEstrelado.y = display.contentCenterY
-  ceuEstrelado.alpha = 1
-  scene.view:insert(ceuEstrelado)
-
-  ceuEstrelado2 = display.newImageRect("images/SkyFullOfStars2.png", display.contentWidth, display.contentHeight)
-  ceuEstrelado2.x = display.contentCenterX
-  ceuEstrelado2.y = display.contentCenterY
-  ceuEstrelado2.alpha = 0
-  scene.view:insert(ceuEstrelado2)
-
-  comoJogar = display.newImage("images/comoJogar.png", display.contentWidth, display.contentHeight)
-  comoJogar.x = display.contentCenterX
-  comoJogar.y = display.contentCenterY
-  comoJogar.alpha = 1
-  scene.view:insert(comoJogar)
+  
+  creditosTxt = display.newImageRect("images/creditosTxt.png", 259, 208)
+  creditosTxt.x = display.contentCenterX
+  creditosTxt.y = display.contentCenterY + 70
+  scene.view:insert(creditosTxt)
   
   botaoVoltarMenu = display.newImage("images/botaoVoltar.png", display.contentWidth, display.contentHeight)
   botaoVoltarMenu.x = display.contentCenterX - 120
@@ -136,88 +128,73 @@ function carregarImgsMenu( )
   botaoVoltarMenu.alpha = 1
   scene.view:insert(botaoVoltarMenu)
   
-  botaoCredito = display.newImage("images/botaoCredito.png", display.contentWidth, display.contentHeight)
-  botaoCredito.x = display.contentCenterX - 100
-  botaoCredito.y = display.contentCenterY + 225
-  botaoCredito.alpha = 1
-  scene.view:insert(botaoCredito)
-  
-  botaoJogar = display.newImage("images/botaoJogar.png", display.contentWidth, display.contentHeight)
-  botaoJogar.x = display.contentCenterX + 110
-  botaoJogar.y = display.contentCenterY + 225
-  botaoJogar.alpha = 1
-  scene.view:insert(botaoJogar)
-  
+  logomarca = display.newImage("images/logoComBorda.png", display.contentWidth, display.contentHeight)
+  logomarca.x = display.contentCenterX
+  logomarca.y = display.contentCenterY - 120
+  logomarca.alpha = 1
+  scene.view:insert(logomarca)
+
   
 end
 --------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
--- Carregar background com estrelas brilhando
---------------------------------------------------------------------------------
-function carregarEstrelas()
-  if (ceuEstrelado ~= nil) then
-    if (ceuEstrelado.alpha > 0) then
-        transition.to(ceuEstrelado, {time=1200, alpha=0})
-    else
-        transition.to(ceuEstrelado, {time=1200, alpha=1})
+-- Função para mover background
+--------------------------------------------------------------------------------	
+	local function scrollBackground(event)
+     
+		background1.y = background1.y - scrollSpeed
+		background2.y = background2.y - scrollSpeed
+		background3.y = background3.y - scrollSpeed
+     
+		if (background1.y + background1.contentWidth) < 0 then
+			background1:translate( 0, 480*3 )
+		end
+		if (background2.y + background2.contentWidth) < 0 then
+			background2:translate( 0, 480*3 )
+		end
+		if (background3.y + background3.contentWidth) < 0 then
+			background3:translate( 0, 480*3 )
+		end
     end
-  end
-end
+--------------------------------------------------------------------------------	
 
-function carregarEstrelas2()
-  if (ceuEstrelado2 ~= nil) then
-    if (ceuEstrelado2.alpha > 0) then
-        transition.to(ceuEstrelado2, {time=1500, alpha=0})
-    else
-        transition.to(ceuEstrelado2, {time=1500, alpha=1})
-    end
-  end
-end
 --------------------------------------------------------------------------------
+-- Função para ativar o movimento do background
+--------------------------------------------------------------------------------			
+	function ativarBg()
+		Runtime:addEventListener( "enterFrame", scrollBackground )
+	end
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+-- Função para desativar o movimento do background
+--------------------------------------------------------------------------------		
+	function desativarBg()
+		Runtime:removeEventListener("enterFrame", scrollBackground)
+	end
+--------------------------------------------------------------------------------
+
 
 --------------------------------------------------------------------------------
 -- Configuração de transição entre cenas
 --------------------------------------------------------------------------------
-local configTransicao = {
+local configTransicaoMenu = {
 	effect = "fade", time = 1000
 }
 --------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
--- Função que chama cena para início do jogo
+-- Função que chama cena de submenu do jogo
 --------------------------------------------------------------------------------
-function comecarJogo( )
+function carregarMenu( )
 	local somIniciar = audio.loadSound( "audio/sfx_menu_select4.wav")
-	audio.play(somIniciar)	
-	audio.stop(1)
-	composer.removeScene("menu")
-	composer.gotoScene("jogo", configTransicao)
+	audio.play(somIniciar)
+	composer.removeScene("inicio")
+	composer.gotoScene("menu", configTransicaoMenu)
 end
 --------------------------------------------------------------------------------
 
---------------------------------------------------------------------------------
--- Função que chama cena de créditos do jogo
---------------------------------------------------------------------------------
-function creditos( )
-	local somIniciar = audio.loadSound( "audio/sfx_menu_select4.wav")
-	audio.play(somIniciar)
-	composer.removeScene("menu")
-	composer.gotoScene("creditos", configTransicao)
-end
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
--- Função que chama cena de inicio do jogo
---------------------------------------------------------------------------------
-function inicio( )
-	local somIniciar = audio.loadSound( "audio/sfx_menu_select4.wav")
-	audio.play(somIniciar)
-	audio.stop(1)
-	composer.removeScene("menu")
-	composer.gotoScene("inicio", configTransicao)
-end
---------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
 -- Listener Setup
@@ -229,4 +206,5 @@ scene:addEventListener("destroy", scene)
 --------------------------------------------------------------------------------
 
 return scene
+
 

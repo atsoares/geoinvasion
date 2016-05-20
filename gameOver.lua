@@ -31,7 +31,9 @@ local carregarImgsGameOver = {}
 local ripAstronauta = {
 	width = 130,
 	height = 114,
-	numFrames = 10
+	numFrames = 10,
+	sheetContentWidth = 1300,
+	sheetContentHeight = 114 
 }
 local tumuloMexendo = {
 	{
@@ -58,7 +60,7 @@ function scene:create(event)
 
   local somMenu = audio.loadStream( "audio/Innovating PSG.mp3" )
   audio.play(somMenu, {loops = -1, channel = 1, fadein = 1000})
-  audio.setVolume( 0.25 , { channel=1 })
+  audio.setVolume( 0.60 , { channel=1 })
 end
 --------------------------------------------------------------------------------
 

@@ -352,45 +352,59 @@ local scene = composer.newScene()
 	local astronauta = {
 	   width = 80,
 	   height = 70,
-	   numFrames = 58
+	   numFrames = 58,
+	   sheetContentWidth = 5440,
+	   sheetContentHeight = 70  
 	}
 	
 	local iconeDisplay = {
 		width = 30,
 		height = 30,
-		numFrames = 3
+		numFrames = 3,
+	   sheetContentWidth = 90,
+	   sheetContentHeight = 30  
 	}
 	
 	local rubik = {
 		width = 30,
 		height = 30,
-		numFrames = 11
+		numFrames = 11,
+	   sheetContentWidth = 330,
+	   sheetContentHeight = 30  
 	}
 	
 	local quadradoVilao = {
 	   width = 38,
 	   height = 58,
-	   numFrames = 16
+	   numFrames = 16,
+	   sheetContentWidth = 608,
+	   sheetContentHeight = 58 
 	}
 	local trianguloVilao = {
 	   width = 38,
 	   height = 65,
-	   numFrames = 16
+	   numFrames = 16,
+	   sheetContentWidth = 608,
+	   sheetContentHeight = 65 
 	}
 	
 	local explosao = {
 	   width = 80,
 	   height = 70,
-	   numFrames = 5
+	   numFrames = 5,
+	   sheetContentWidth = 400,
+	   sheetContentHeight = 70 
 	}
 	
 	local estrela = {
 		width = 16,
 		height = 15,
-		numFrames = 4
+		numFrames = 4,
+		sheetContentWidth = 80,
+	   sheetContentHeight = 15 
 	}
 	
-	local sheet_heroi = graphics.newImageSheet( "images/astronauta.png", astronauta )
+	local sheet_heroi = graphics.newImageSheet( "images/Astronauta.png", astronauta )
 	local sheet_estrela = graphics.newImageSheet ("images/star.png", estrela)
 	local sheet_explosao = graphics.newImageSheet ("images/explosao.png", explosao)
 	local sheet_rubik = graphics.newImageSheet ("images/rubikscube.png", rubik)
@@ -664,6 +678,7 @@ end
 			background3:translate( 0, -960 )
 		end
     end
+--------------------------------------------------------------------------------	
 	
 --------------------------------------------------------------------------------
 -- Função para ativar o movimento do background
@@ -807,8 +822,8 @@ end
 --------------------------------------------------------------------------------		
 	function ativarPowerUp(self, event) 
 		if (gameIsActive == true and heroi.powerUpAtivado == false) then
+			local probabilidadeDificuldade = math.random(2) == 1 and 25 or 50
 			audio.play(coletandoPowerUp)
-			self = nil
 			timer.performWithDelay(1, function() self:removeSelf() end )
 			heroi.powerUpAtivado = true
 			ativarTempoPowerUp = timer.performWithDelay(5000, desativarPowerUp)
@@ -845,9 +860,10 @@ end
 				timer.performWithDelay(1, function() self:removeSelf() end )
 				audio.play(coletandoPowerUp)
 				contadorPowerUP = contadorPowerUP +1
-				dificuldade = dificuldade + 50
+				dificuldade = dificuldade + probabilidadeDificuldade
 				score=score+100
 				updateTexto()
+				self = nil
 			end
 		return true
 		end
@@ -862,9 +878,11 @@ end
 		if (self.y ~= nil) then
 			if (gameIsActive == true) then
 				self.y = self.y + 3
-				if (self.y >= 481) then
+				if (self.y > 481) then
 					self.alpha = 0
 					self:removeSelf()
+					self = nil
+					Runtime:removeEventListener("enterFrame", self)
 				end
 			end		
 		end		
@@ -1096,11 +1114,13 @@ end
 --------------------------------------------------------------------------------
 	local criarMonstros = function()
 		
-			local prob = contadorPowerUP + 10
-			local prob2 = (contadorPowerUP+10) * 1
+			local prob = contadorPowerUP + 30
+			local prob2 = (contadorPowerUP+10) * (contadorPowerUP+1)
 			
 			local combinacao = math.random(1,36)
 			local probabilidadePowerUp = math.random(prob)
+			local contadorDoisMonstros = 0
+			local tempoDoisMonstros = (contadorDoisMonstros*1000) + 1500
 			
 			local Fall = math.random(2) == 1 and 220 or 100
 			local monstro = math.random(1, 2)
@@ -1325,8 +1345,9 @@ end
 				vilao[i].enterFrame = monstroAndandoGameOver
 				Runtime:addEventListener("enterFrame", vilao[i])
 				grupoMonstros1:insert(vilao[i])
+				contadorDoisMonstros = contadorDoisMonstros + 1
 				
-				timer.performWithDelay(1500, doisMonstrosDesativar)
+				timer.performWithDelay(tempoDoisMonstros, doisMonstrosDesativar)
 				
 			elseif(doisMonstros == false)then
 				if (monstro == 1) then
@@ -1373,7 +1394,7 @@ end
 			
 			distanciaAuxrMetro()
 			i = i + 1
-			distancia = distancia + 1
+			--distancia = distancia + 1
 			updateTexto()
 			if (metro == true) then
 				score = score+1
@@ -1391,10 +1412,14 @@ end
 		ativandoCriarMonstros = timer.performWithDelay( dificuldade,function () criarMonstros(); IniciarJogo() end, 1 ) 
 	end
  --------------------------------------------------------------------------------
-	
+
+--------------------------------------------------------------------------------
+-- Função para criar os efeitos antes chamar tela de  gameOver
+-------------------------------------------------------------------------------- 
 	function chamarGameOver() 
 		
 		efeitoExplosao()
+		system.vibrate()
 		HeroiMorrendo()
 		pararDisplay()
 		desativarBg()
@@ -1402,14 +1427,14 @@ end
 		heroi:removeEventListener("sprite", HeroiAtirar)
 		Runtime:removeEventListener("enterFrame", vilao2[i])
 		Runtime:removeEventListener("enterFrame", vilao[i])
-		if (rubikPowerUP ~= nil) then
-			rubikPowerUP:removeEventListener("touch", rubikPowerUP)
-			Runtime:removeEventListener("enterFrame", rubikPowerUP)
-		end
-		if (estrelaCoin ~= nil) then
-			estrelaCoin:removeEventListener("touch", estrelaCoin)
-			Runtime:removeEventListener("enterFrame", estrelaCoin)
-		end
+		-- if (rubikPowerUP ~= nil) then
+			-- rubikPowerUP:removeEventListener("touch", rubikPowerUP)
+			-- Runtime:removeEventListener("enterFrame", rubikPowerUP)
+		-- end
+		-- if (estrelaCoin ~= nil) then
+			-- estrelaCoin:removeEventListener("touch", estrelaCoin)
+			-- Runtime:removeEventListener("enterFrame", estrelaCoin)
+		-- end
 		if (ativandoCriarMonstros) then
 			timer.cancel(ativandoCriarMonstros)
 			ativandoCriarMonstros = nil
@@ -1442,6 +1467,7 @@ end
 		timer.performWithDelay(1300, gameOver)
 		
 	end
+-------------------------------------------------------------------------------- 
 	
 --------------------------------------------------------------------------------
 -- Configuração de transição entre cenas
