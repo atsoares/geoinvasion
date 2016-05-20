@@ -9,10 +9,16 @@ local configTransicaoMenu = {
 ----------------------------------------------------------------------------
 
 local composer = require ("composer")
-composer.gotoScene("menu", configTransicaoMenu)
+composer.gotoScene("inicio", configTransicaoMenu)
 
 local composer = require("composer")
 local scene = composer.newScene()
 
-
-
+--------------------------------------------------------------------------------
+-- Variáveis globais
+--------------------------------------------------------------------------------
+score = 0
+distancia = 0
+distanciaAux = 10
+monstrosEliminados = 0
+contadorItens = 0
