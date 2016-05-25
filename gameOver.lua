@@ -58,9 +58,10 @@ function scene:create(event)
   carregarImagens()
   criarTumulo() 
 
+  audio.setVolume( 0.80 , { channel=1 })
   local somMenu = audio.loadStream( "audio/Innovating PSG.mp3" )
   audio.play(somMenu, {loops = -1, channel = 1, fadein = 1000})
-  audio.setVolume( 0.60 , { channel=1 })
+  
 end
 --------------------------------------------------------------------------------
 
@@ -144,7 +145,7 @@ end
 	function criarTumulo() 
 		tumuloSprite = display.newSprite( sheet_tumulo, tumuloMexendo )
 		tumuloSprite.x = 160
-		tumuloSprite.y = 436
+		tumuloSprite.y = 430
 		tumuloSprite:setSequence("morrendo")
 		tumuloSprite:play()
 		scene.view:insert(tumuloSprite)
