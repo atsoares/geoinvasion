@@ -824,7 +824,7 @@ end
 		if (gameIsActive == true and heroi.powerUpAtivado == false) then
 			local probabilidadeDificuldade = math.random(2) == 1 and 25 or 50
 			audio.play(coletandoPowerUp)
-			timer.performWithDelay(1, function() self:removeSelf() end )
+			self.alpha = 0
 			heroi.powerUpAtivado = true
 			ativarTempoPowerUp = timer.performWithDelay(5000, desativarPowerUp)
 			if (self.x == 100 and heroi.arma == 1) then 
@@ -857,13 +857,15 @@ end
 				alterarDisplay()
 			end
 			if(event.phase == "ended") then
-				timer.performWithDelay(1, function() self:removeSelf() end )
-				audio.play(coletandoPowerUp)
-				contadorPowerUP = contadorPowerUP +1
-				dificuldade = dificuldade + probabilidadeDificuldade
-				score=score+100
-				updateTexto()
-				self = nil
+				if (self ~= nil) then
+					timer.performWithDelay(1, function() self:removeSelf() end )
+					audio.play(coletandoPowerUp)
+					contadorPowerUP = contadorPowerUP +1
+					dificuldade = dificuldade + probabilidadeDificuldade
+					score=score+100
+					updateTexto()
+					self = nil
+				end
 			end
 		return true
 		end
@@ -911,17 +913,19 @@ end
 -- Ex: estrela
 --------------------------------------------------------------------------------	
 	function criarItensColetaveis()	
-		estrelaCoin = display.newSprite(sheet_estrela, animacao_estrela)
-		estrelaCoin.x = math.random(3) == 1 and 295 or 25 or 160
-		estrelaCoin.y = -30
-		estrelaCoin.id = 4	
-		estrelaCoin:setSequence("estrela_brilhando")
-		estrelaCoin:play()
-		estrelaCoin.touch = coletarItem
-		estrelaCoin.enterFrame = ItemExtraCaindo
-		estrelaCoin:addEventListener("touch", estrelaCoin)
-		Runtime:addEventListener("enterFrame", estrelaCoin)
-		grupoItens:insert(estrelaCoin)
+		if (gameIsActive == true) then
+			estrelaCoin = display.newSprite(sheet_estrela, animacao_estrela)
+			estrelaCoin.x = math.random(3) == 1 and 295 or 25 or 160
+			estrelaCoin.y = -30
+			estrelaCoin.id = 4	
+			estrelaCoin:setSequence("estrela_brilhando")
+			estrelaCoin:play()
+			estrelaCoin.touch = coletarItem
+			estrelaCoin.enterFrame = ItemExtraCaindo
+			estrelaCoin:addEventListener("touch", estrelaCoin)
+			Runtime:addEventListener("enterFrame", estrelaCoin)
+			grupoItens:insert(estrelaCoin)
+		end 
 	end
 --------------------------------------------------------------------------------
 	
@@ -1394,13 +1398,13 @@ end
 			
 			distanciaAuxrMetro()
 			i = i + 1
-			--distancia = distancia + 1
+			distancia = distancia + 1
 			updateTexto()
-			if (metro == true) then
-				score = score+1
-				updateTexto()
-				metro = false
-			end
+			-- if (metro == true) then
+				-- score = score+1
+				-- updateTexto()
+				-- metro = false
+			-- end
 end
 --------------------------------------------------------------------------------
 	
@@ -1421,12 +1425,12 @@ end
 		efeitoExplosao()
 		system.vibrate()
 		HeroiMorrendo()
-		pararDisplay()
-		desativarBg()
 		heroi:removeEventListener( "tap" )
 		heroi:removeEventListener("sprite", HeroiAtirar)
 		Runtime:removeEventListener("enterFrame", vilao2[i])
 		Runtime:removeEventListener("enterFrame", vilao[i])
+		pararDisplay()
+		desativarBg()
 		-- if (rubikPowerUP ~= nil) then
 			-- rubikPowerUP:removeEventListener("touch", rubikPowerUP)
 			-- Runtime:removeEventListener("enterFrame", rubikPowerUP)
@@ -1450,18 +1454,22 @@ end
 		if (grupoMonstros1 ~= nil) then
 			grupoMonstros1.alpha = 0
 			grupoMonstros1:removeSelf()
+			grupoMonstros1 = nil 
 		end
 		if (grupoMonstros2 ~= nil) then
 			grupoMonstros2.alpha = 0
 			grupoMonstros2:removeSelf()
+			grupoMonstros1 = nil 
 		end
 		if (grupoItens ~= nil) then
 			grupoItens.alpha = 0
 			grupoItens:removeSelf()
+			grupoMonstros1 = nil 
 		end
 		if (grupoRubik ~= nil) then
 			grupoRubik.alpha = 0
 			grupoRubik:removeSelf()
+			grupoMonstros1 = nil 
 		end
 
 		timer.performWithDelay(1300, gameOver)
